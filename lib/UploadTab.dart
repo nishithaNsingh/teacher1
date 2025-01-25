@@ -2,24 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Employee Details Form',
-      home: EmployeeDetailsForm(),
-    );
-  }
-}
 
 class EmployeeDetailsForm extends StatefulWidget {
   @override
@@ -28,7 +10,6 @@ class EmployeeDetailsForm extends StatefulWidget {
 
 class _EmployeeDetailsFormState extends State<EmployeeDetailsForm> {
   final PageController _controller = PageController();
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Personal Details
   final TextEditingController firstNameController = TextEditingController();
@@ -40,54 +21,52 @@ class _EmployeeDetailsFormState extends State<EmployeeDetailsForm> {
   final TextEditingController mobileController = TextEditingController();
   final TextEditingController whatsappController = TextEditingController();
   final TextEditingController linkedInController = TextEditingController();
+  // Controllers for journal publications
+  final journalIntlController = TextEditingController();
+  final journalNatController = TextEditingController();
+  final journalRegController = TextEditingController();
 
-  // Education Details
-  final List<Map<String, dynamic>> educationDetails = [];
+  // Controllers for conference publications
+  final confIntlController = TextEditingController();
+  final confNatController = TextEditingController();
+  final confRegController = TextEditingController();
 
-  // Experience Details
-  final List<Map<String, dynamic>> experienceDetails = [];
+  // Controllers for article publications
+  final articleAuthorController = TextEditingController();
+  final articleTitleController = TextEditingController();
+  final articleJournalController = TextEditingController();
+  final articleISSNController = TextEditingController();
 
-  // Publications
-  final TextEditingController journalIntlController = TextEditingController();
-  final TextEditingController journalNatController = TextEditingController();
-  final TextEditingController journalRegController = TextEditingController();
-  final TextEditingController confIntlController = TextEditingController();
-  final TextEditingController confNatController = TextEditingController();
-  final TextEditingController confRegController = TextEditingController();
-  final TextEditingController articleAuthorController = TextEditingController();
-  final TextEditingController articleTitleController = TextEditingController();
-  final TextEditingController articleJournalController = TextEditingController();
-  final TextEditingController articleISSNController = TextEditingController();
-  final TextEditingController presentedNatController = TextEditingController();
-  final TextEditingController presentedRegController = TextEditingController();
-  final TextEditingController attendedNatController = TextEditingController();
-  final TextEditingController attendedRegController = TextEditingController();
-  final TextEditingController organizedNatController = TextEditingController();
-  final TextEditingController organizedRegController = TextEditingController();
-  final TextEditingController projectsCompletedNumController = TextEditingController();
-  final TextEditingController projectsCompletedAmtController = TextEditingController();
-  final TextEditingController projectsOngoingNumController = TextEditingController();
-  final TextEditingController projectsOngoingAmtController = TextEditingController();
-  final TextEditingController citationsController = TextEditingController();
-  final TextEditingController patentDetailsController = TextEditingController();
-  final TextEditingController patentYearController = TextEditingController();
-  final TextEditingController patentStatusController = TextEditingController();
-  final TextEditingController currentSalaryController = TextEditingController();
-  final TextEditingController expectedSalaryController = TextEditingController();
-  final TextEditingController noticePeriodController = TextEditingController();
+  // Controllers for conferences, seminars, and workshops
+  final presentedNatController = TextEditingController();
+  final presentedRegController = TextEditingController();
+  final attendedNatController = TextEditingController();
+  final attendedRegController = TextEditingController();
+  final organizedNatController = TextEditingController();
+  final organizedRegController = TextEditingController();
+
+  // Controllers for funded projects
+  final projectsCompletedNumController = TextEditingController();
+  final projectsCompletedAmtController = TextEditingController();
+  final projectsOngoingNumController = TextEditingController();
+  final projectsOngoingAmtController = TextEditingController();
+
+  // Controller for citations
+  final citationsController = TextEditingController();
+
+  // Controllers for patent details
+  final patentDetailsController = TextEditingController();
+  final patentYearController = TextEditingController();
+  final patentStatusController = TextEditingController();
+
+  // Controllers for compensation and notice period
+  final currentSalaryController = TextEditingController();
+  final expectedSalaryController = TextEditingController();
+  final noticePeriodController = TextEditingController();
 
   @override
   void dispose() {
-    // Dispose all controllers
-    firstNameController.dispose();
-    middleNameController.dispose();
-    lastNameController.dispose();
-    dobController.dispose();
-    ageController.dispose();
-    emailController.dispose();
-    mobileController.dispose();
-    whatsappController.dispose();
-    linkedInController.dispose();
+    // Dispose of controllers to prevent memory leaks
     journalIntlController.dispose();
     journalNatController.dispose();
     journalRegController.dispose();
@@ -118,80 +97,58 @@ class _EmployeeDetailsFormState extends State<EmployeeDetailsForm> {
     super.dispose();
   }
 
-  Future<void> _submitForm() async {
-    try {
-      // Create a map of the employee details
-      Map<String, dynamic> employeeData = {
-        'personalDetails': {
-          'firstName': firstNameController.text,
-          'middleName': middleNameController.text,
-          'lastName': lastNameController.text,
-          'dob': dobController.text,
-          'age': ageController.text,
-          'email': emailController.text,
-          'mobile': mobileController.text,
-          'whatsapp': whatsappController.text,
-          'linkedIn': linkedInController.text,
-        },
-        'educationDetails': educationDetails,
-        'experienceDetails': experienceDetails,
-        'publications': {
-          'journalPublications': {
-            'international': journalIntlController.text,
-            'national': journalNatController.text,
-            'regional': journalRegController.text,
-          },
-          'conferencePublications': {
-            'international': confIntlController.text,
-            'national': confNatController.text,
-            'regional': confRegController.text,
-          },
-          'articlePublications': {
-            'author': articleAuthorController.text,
-            'title': articleTitleController.text,
-            'journal': articleJournalController.text,
-            'issn': articleISSNController.text,
-          },
-          'conferencesSeminarsWorkshops': {
-            'presentedNational': presentedNatController.text,
-            'presentedRegional': presentedRegController.text,
-            'attendedNational': attendedNatController.text,
-            'attendedRegional': attendedRegController.text,
-            'organizedNational': organizedNatController.text,
-            'organizedRegional': organizedRegController.text,
-          },
-          'fundedProjects': {
-            'completedProjectsNumber': projectsCompletedNumController.text,
-            'completedProjectsAmount': projectsCompletedAmtController.text,
-            'ongoingProjectsNumber': projectsOngoingNumController.text,
-            'ongoingProjectsAmount': projectsOngoingAmtController.text,
-          },
-          'citations': citationsController.text,
-          'patentDetails': {
-            'details': patentDetailsController.text,
-            'year': patentYearController.text,
-            'status': patentStatusController.text,
-          },
-        },
-        'compensation': {
-          'currentSalary': currentSalaryController.text,
-          'expectedSalary': expectedSalaryController.text,
-          'noticePeriod': noticePeriodController.text,
-        },
-      };
+ 
+  // Education Details
+  final List<Map<String, dynamic>> educationDetails = [];
 
-      // Add the data to Firestore
-      await _firestore.collection('employees').add(employeeData);
+  // Experience Details
+  final List<Map<String, dynamic>> experienceDetails = [];
 
-      // Show a success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Employee details saved successfully!')),
-      );
-    } catch (e) {
-      // Show an error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save employee details: $e')),
-      );
+  // Publications
+  final TextEditingController publicationController = TextEditingController();
+
+  void _addEducation() {
+    educationDetails.add({
+      'degree': '',
+      'university': '',
+      'cgpa': '',
+    });
+    setState(() {});
+  }
+
+  void _addExperience() {
+    experienceDetails.add({
+      'organization': '',
+      'fromDate': '',
+      'toDate': '',
+      'isPresent': false,
+      'designation': '',
+      'description': '',
+      'image': null,
+    });
+    setState(() {});
+  }
+
+  Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      controller.text = DateFormat('yyyy-MM-dd').format(picked);
+    }
+  }
+
+  Future<void> _pickImage(int index) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        experienceDetails[index]['image'] = File(pickedFile.path);
+      });
     }
   }
 
@@ -199,8 +156,13 @@ class _EmployeeDetailsFormState extends State<EmployeeDetailsForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text('Employee Details Form'),
+        centerTitle: false,
+        backgroundColor: Colors.white,
+        elevation: 4,
       ),
+      backgroundColor: Colors.grey[200],
       body: PageView(
         controller: _controller,
         physics: NeverScrollableScrollPhysics(),
@@ -213,38 +175,208 @@ class _EmployeeDetailsFormState extends State<EmployeeDetailsForm> {
         ],
       ),
     );
-  }
+  }Widget _buildPersonalDetailsPage() {
+  bool isSameAddress = false; // Track checkbox state
+  TextEditingController currentAddressController = TextEditingController();
+  TextEditingController permanentAddressController = TextEditingController();
 
-  Widget _buildPersonalDetailsPage() {
-    return _buildPage(
-      title: 'Personal Details',
-      children: [
-        _buildTextField(controller: firstNameController, label: 'First Name'),
-        _buildTextField(controller: middleNameController, label: 'Middle Name'),
-        _buildTextField(controller: lastNameController, label: 'Last Name'),
-        _buildDateField(controller: dobController, label: 'Date of Birth'),
-        _buildTextField(controller: ageController, label: 'Age'),
-        _buildTextField(controller: emailController, label: 'Email'),
-        _buildTextField(controller: mobileController, label: 'Mobile'),
-        _buildTextField(controller: whatsappController, label: 'WhatsApp'),
-        _buildTextField(controller: linkedInController, label: 'LinkedIn URL'),
-      ],
-      onNext: () => _controller.nextPage(
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
+  return _buildPage(
+    title: 'Personal Details',
+    children: [
+      // Title Dropdown (Mr, Dr, Miss)
+      DropdownButtonFormField<String>(
+        decoration: InputDecoration(
+          labelText: 'Title',
+          border: OutlineInputBorder(),
+        ),
+        items: ['Mr.', 'Dr.', 'Miss']
+            .map((title) => DropdownMenuItem(
+                  value: title,
+                  child: Text(title),
+                ))
+            .toList(),
+        onChanged: (value) {
+          // Handle title selection
+        },
       ),
-    );
-  }
+      SizedBox(height: 16),
+
+      // First Name
+      _buildTextField(controller: firstNameController, label: 'First Name'),
+
+      // Middle Name
+      _buildTextField(controller: middleNameController, label: 'Middle Name'),
+
+      // Last Name
+      _buildTextField(controller: lastNameController, label: 'Last Name'),
+
+      // Gender Dropdown
+      DropdownButtonFormField<String>(
+        decoration: InputDecoration(
+          labelText: 'Gender',
+          border: OutlineInputBorder(),
+        ),
+        items: ['Male', 'Female', 'Other']
+            .map((gender) => DropdownMenuItem(
+                  value: gender,
+                  child: Text(gender),
+                ))
+            .toList(),
+        onChanged: (value) {
+          // Handle gender selection
+        },
+      ),
+      SizedBox(height: 16),
+
+      // Date of Birth
+      _buildDateField(controller: dobController, label: 'Date of Birth'),
+
+      // Place of Birth
+      _buildTextField(controller: ageController, label: 'Place of Birth'),
+
+      // Marital Status Dropdown
+      DropdownButtonFormField<String>(
+        decoration: InputDecoration(
+          labelText: 'Marital Status',
+          border: OutlineInputBorder(),
+        ),
+        items: ['Single', 'Married', 'Divorced']
+            .map((status) => DropdownMenuItem(
+                  value: status,
+                  child: Text(status),
+                ))
+            .toList(),
+        onChanged: (value) {
+          // Handle marital status selection
+        },
+      ),
+      SizedBox(height: 16),
+
+      // Country Dropdown
+      DropdownButtonFormField<String>(
+        decoration: InputDecoration(
+          labelText: 'Country',
+          border: OutlineInputBorder(),
+        ),
+        items: [
+          'India',
+          'United States',
+          'Canada',
+          'United Kingdom',
+          'Australia',
+          'Germany',
+          'France'
+        ]
+            .map((country) => DropdownMenuItem(
+                  value: country,
+                  child: Text(country),
+                ))
+            .toList(),
+        onChanged: (value) {
+          // Handle country selection
+        },
+      ),
+      SizedBox(height: 16),
+
+      // State
+      _buildTextField(controller: TextEditingController(), label: 'State'),
+
+      // City
+      _buildTextField(controller: TextEditingController(), label: 'City'),
+
+      // Pin Code
+      _buildTextField(controller: TextEditingController(), label: 'Pin Code'),
+
+      // Current Address
+      _buildTextField(
+        controller: currentAddressController,
+        label: 'Current Address',
+      ),
+
+      // Checkbox: Same as Current Address
+      Row(
+        children: [
+          Checkbox(
+            value: isSameAddress,
+            onChanged: (value) {
+              isSameAddress = value ?? false;
+              if (isSameAddress) {
+                permanentAddressController.text = currentAddressController.text;
+              } else {
+                permanentAddressController.clear();
+              }
+            },
+          ),
+          Text('Same as Current Address'),
+        ],
+      ),
+
+      // Permanent Address
+      _buildTextField(
+        controller: permanentAddressController,
+        label: 'Permanent Address',
+      ),
+
+      // Aadhaar Card Number
+      _buildTextField(
+        controller: TextEditingController(),
+        label: 'Aadhaar Card Number',
+      ),
+
+      // PAN Card Number
+      _buildTextField(
+        controller: TextEditingController(),
+        label: 'PAN Card Number',
+      ),
+
+      // Email
+      _buildTextField(controller: emailController, label: 'Email'),
+
+      // Mobile
+      _buildTextField(controller: mobileController, label: 'Mobile'),
+
+      // WhatsApp
+      _buildTextField(controller: whatsappController, label: 'WhatsApp'),
+
+      // LinkedIn URL
+      _buildTextField(controller: linkedInController, label: 'LinkedIn URL'),
+    ],
+    onNext: () => _controller.nextPage(
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    ),
+  );
+}
+
+
 
   Widget _buildEducationDetailsPage() {
     return _buildPage(
       title: 'Education Details',
       children: [
         for (int i = 0; i < educationDetails.length; i++) _buildEducationCard(i),
-        ElevatedButton(
-          onPressed: _addEducation,
-          child: Text('Add Education'),
-        ),
+       ElevatedButton.icon(
+  onPressed: _addEducation,
+  icon: Icon(Icons.school, color: Colors.white),
+  label: Text(
+    'Add Education',
+    style: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.bold,
+      color: Colors.white,
+    ),
+  ),
+  style: ElevatedButton.styleFrom(
+    backgroundColor: Colors.blueAccent,
+    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(30),
+    ),
+    shadowColor: Colors.blue.withOpacity(0.5),
+    elevation: 10,
+  ),
+),
+
       ],
       onNext: () => _controller.nextPage(
         duration: Duration(milliseconds: 300),
@@ -262,53 +394,28 @@ class _EmployeeDetailsFormState extends State<EmployeeDetailsForm> {
       title: 'Experience Details',
       children: [
         for (int i = 0; i < experienceDetails.length; i++) _buildExperienceCard(i),
-        ElevatedButton(
-          onPressed: _addExperience,
-          child: Text('Add Experience'),
-        ),
-      ],
-      onNext: () => _controller.nextPage(
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      ),
-      onBack: () => _controller.previousPage(
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      ),
-    );
-  }
+        ElevatedButton.icon(
+  onPressed: _addExperience,
+  icon: Icon(Icons.work, color: Colors.white),
+  label: Text(
+    'Add Experience',
+    style: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.bold,
+      color: Colors.white,
+    ),
+  ),
+  style: ElevatedButton.styleFrom(
+    backgroundColor: Colors.deepOrangeAccent,
+    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(30),
+    ),
+    shadowColor: Colors.deepOrange.withOpacity(0.5),
+    elevation: 10,
+  ),
+),
 
-  Widget _buildPublicationPage() {
-    return _buildPage(
-      title: 'Publications',
-      children: [
-        _buildTextField(controller: journalIntlController, label: 'International Journals'),
-        _buildTextField(controller: journalNatController, label: 'National Journals'),
-        _buildTextField(controller: journalRegController, label: 'Regional Journals'),
-        _buildTextField(controller: confIntlController, label: 'International Conferences'),
-        _buildTextField(controller: confNatController, label: 'National Conferences'),
-        _buildTextField(controller: confRegController, label: 'Regional Conferences'),
-        _buildTextField(controller: articleAuthorController, label: 'Article Author'),
-        _buildTextField(controller: articleTitleController, label: 'Article Title'),
-        _buildTextField(controller: articleJournalController, label: 'Journal Name'),
-        _buildTextField(controller: articleISSNController, label: 'ISSN'),
-        _buildTextField(controller: presentedNatController, label: 'Presented National'),
-        _buildTextField(controller: presentedRegController, label: 'Presented Regional'),
-        _buildTextField(controller: attendedNatController, label: 'Attended National'),
-        _buildTextField(controller: attendedRegController, label: 'Attended Regional'),
-        _buildTextField(controller: organizedNatController, label: 'Organized National'),
-        _buildTextField(controller: organizedRegController, label: 'Organized Regional'),
-        _buildTextField(controller: projectsCompletedNumController, label: 'Completed Projects (Number)'),
-        _buildTextField(controller: projectsCompletedAmtController, label: 'Completed Projects (Amount)'),
-        _buildTextField(controller: projectsOngoingNumController, label: 'Ongoing Projects (Number)'),
-        _buildTextField(controller: projectsOngoingAmtController, label: 'Ongoing Projects (Amount)'),
-        _buildTextField(controller: citationsController, label: 'Citations'),
-        _buildTextField(controller: patentDetailsController, label: 'Patent Details'),
-        _buildTextField(controller: patentYearController, label: 'Patent Year'),
-        _buildTextField(controller: patentStatusController, label: 'Patent Status'),
-        _buildTextField(controller: currentSalaryController, label: 'Current Salary'),
-        _buildTextField(controller: expectedSalaryController, label: 'Expected Salary'),
-        _buildTextField(controller: noticePeriodController, label: 'Notice Period'),
       ],
       onNext: () => _controller.nextPage(
         duration: Duration(milliseconds: 300),
@@ -320,15 +427,119 @@ class _EmployeeDetailsFormState extends State<EmployeeDetailsForm> {
       ),
     );
   }
+Widget _buildPublicationPage() {
+  return _buildPage(
+    title: 'Publications & Other Details',
+    children: [
+      _buildSectionHeader('Number of Journal Publications'),
+      _buildCustomField(label: 'International', controller: journalIntlController),
+      _buildCustomField(label: 'National', controller: journalNatController),
+      _buildCustomField(label: 'Regional', controller: journalRegController),
+
+      _buildSectionHeader('Number of Conference Publications'),
+      _buildCustomField(label: 'International', controller: confIntlController),
+      _buildCustomField(label: 'National', controller: confNatController),
+      _buildCustomField(label: 'Regional', controller: confRegController),
+
+      _buildSectionHeader('Article Publications in Journals'),
+      _buildCustomField(label: 'Author', controller: articleAuthorController),
+      _buildCustomField(label: 'Title of Article', controller: articleTitleController),
+      _buildCustomField(label: 'Name of Journal', controller: articleJournalController),
+      _buildCustomField(label: 'ISSN', controller: articleISSNController),
+
+      _buildSectionHeader('Conferences, Seminars, Workshops'),
+      _buildCustomField(label: 'Presented (National)', controller: presentedNatController),
+      _buildCustomField(label: 'Presented (Regional)', controller: presentedRegController),
+      _buildCustomField(label: 'Attended (National)', controller: attendedNatController),
+      _buildCustomField(label: 'Attended (Regional)', controller: attendedRegController),
+      _buildCustomField(label: 'Organized (National)', controller: organizedNatController),
+      _buildCustomField(label: 'Organized (Regional)', controller: organizedRegController),
+
+      _buildSectionHeader('Funded Projects (Last 3 Years)'),
+      _buildCustomField(label: 'Completed Projects (Number)', controller: projectsCompletedNumController),
+      _buildCustomField(label: 'Completed Projects (Amount in INR)', controller: projectsCompletedAmtController),
+      _buildCustomField(label: 'Ongoing Projects (Number)', controller: projectsOngoingNumController),
+      _buildCustomField(label: 'Ongoing Projects (Amount in INR)', controller: projectsOngoingAmtController),
+
+      _buildSectionHeader('Citations (Last 3 Years)'),
+      _buildCustomField(label: 'Number of Citations', controller: citationsController),
+
+      _buildSectionHeader('Patent Details'),
+      _buildCustomField(label: 'Patent Details', controller: patentDetailsController),
+      _buildCustomField(label: 'Year', controller: patentYearController),
+      _buildCustomField(label: 'Status', controller: patentStatusController),
+
+      
+    ],
+    onNext: () => _controller.nextPage(
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    ),
+    onBack: () => _controller.previousPage(
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    ),
+  );
+}
+
+Widget _buildSectionHeader(String title) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 16.0),
+    child: Text(
+      title,
+      style: TextStyle(
+        fontSize: 18.0,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+  );
+}
+
+Widget _buildCustomField({
+  required String label,
+  required TextEditingController controller,
+}) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(),
+      ),
+    ),
+  );
+}
+
 
   Widget _buildSubmitPage() {
     return _buildPage(
       title: 'Submit',
       children: [
-        ElevatedButton(
-          onPressed: _submitForm,
-          child: Text('Submit'),
-        ),
+        ElevatedButton.icon(
+  onPressed: () {
+    // Submit logic here
+  },
+  icon: Icon(Icons.check_circle, color: Colors.white),
+  label: Text(
+    'Submit',
+    style: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.bold,
+      color: Colors.white,
+    ),
+  ),
+  style: ElevatedButton.styleFrom(
+    backgroundColor: Colors.green,
+    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(30),
+    ),
+    shadowColor: Colors.green.withOpacity(0.5),
+    elevation: 10,
+  ),
+),
+
       ],
       onBack: () => _controller.previousPage(
         duration: Duration(milliseconds: 300),
@@ -357,15 +568,51 @@ class _EmployeeDetailsFormState extends State<EmployeeDetailsForm> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 if (onBack != null)
-                  ElevatedButton(
-                    onPressed: onBack,
-                    child: Text('Back'),
-                  ),
+                  ElevatedButton.icon(
+  onPressed: onBack,
+  icon: Icon(Icons.arrow_back, color: Colors.white),
+  label: Text(
+    'Back',
+    style: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.bold,
+      color: Colors.white,
+    ),
+  ),
+  style: ElevatedButton.styleFrom(
+    backgroundColor: Colors.blueGrey,
+    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(30),
+    ),
+    shadowColor: Colors.blueGrey.withOpacity(0.5),
+    elevation: 10,
+  ),
+),
+
                 if (onNext != null)
-                  ElevatedButton(
-                    onPressed: onNext,
-                    child: Text('Next'),
-                  ),
+                ElevatedButton.icon(
+  onPressed: onNext,
+  icon: Icon(Icons.arrow_forward, color: Colors.white),
+  label: Text(
+    'Next',
+    style: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.bold,
+      color: Colors.white,
+    ),
+  ),
+  style: ElevatedButton.styleFrom(
+    backgroundColor: Colors.purpleAccent,
+    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(30),
+    ),
+    shadowColor: Colors.purple.withOpacity(0.5),
+    elevation: 10,
+  ),
+),
+
               ],
             ),
           ],
@@ -410,133 +657,327 @@ class _EmployeeDetailsFormState extends State<EmployeeDetailsForm> {
       ),
     );
   }
+Widget _buildEducationCard(int index) {
+  final education = educationDetails[index];
+  final educationLabels = [
+    '10th/SSLC',
+    'Higher Secondary/PUC',
+    'Graduation',
+    'Post Graduation',
+    'Ph.D.',
+    'Other Qualifications',
+    'Government Exams'
+  ];
 
-  Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
-    DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) {
-      controller.text = DateFormat('yyyy-MM-dd').format(picked);
-    }
-  }
+  return Card(
+    margin: const EdgeInsets.symmetric(vertical: 8.0),
+    elevation: 4,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Education ${index + 1} - ${educationLabels[index]}",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 16),
 
-  void _addEducation() {
-    educationDetails.add({
-      'degree': '',
-      'university': '',
-      'cgpa': '',
-    });
-    setState(() {});
-  }
-
-  void _addExperience() {
-    experienceDetails.add({
-      'organization': '',
-      'fromDate': '',
-      'toDate': '',
-      'isPresent': false,
-      'designation': '',
-      'description': '',
-      'image': null,
-    });
-    setState(() {});
-  }
-
-  Widget _buildEducationCard(int index) {
-    final education = educationDetails[index];
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Education ${index + 1}"),
+          // Institution Name
+          if (index < 6)
             _buildTextField(
-              controller: TextEditingController(text: education['degree']),
-              label: 'Degree',
+              controller: TextEditingController(text: education['institutionName']),
+              label: 'Institution Name',
             ),
-            _buildTextField(
-              controller: TextEditingController(text: education['university']),
-              label: 'University',
-            ),
-            _buildTextField(
-              controller: TextEditingController(text: education['cgpa']),
-              label: 'CGPA',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+          if (index < 6) SizedBox(height: 16),
 
-  Widget _buildExperienceCard(int index) {
-    final experience = experienceDetails[index];
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Experience ${index + 1}"),
+          // Board/University
+          if (index < 6)
             _buildTextField(
-              controller: TextEditingController(text: experience['organization']),
-              label: 'Organization',
+              controller: TextEditingController(text: education['boardUniv']),
+              label: 'Board/University',
             ),
-            _buildDateField(
-              controller: TextEditingController(text: experience['fromDate']),
-              label: 'From Date',
+          if (index < 6) SizedBox(height: 16),
+
+          // Education Mode (only for Graduation, Post Graduation, Ph.D., and Other Qualifications)
+          if (index > 1 && index < 6)
+            Column(
+              children: [
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'Education Mode',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: ['Full-Time', 'Part-Time', 'Distance']
+                      .map((mode) => DropdownMenuItem(
+                            value: mode,
+                            child: Text(mode),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    education['eduMode'] = value;
+                  },
+                ),
+                SizedBox(height: 16),
+              ],
             ),
-            if (!experience['isPresent'])
-              _buildDateField(
-                controller: TextEditingController(text: experience['toDate']),
-                label: 'To Date',
+
+          // Division/Grade
+          if (index < 6)
+            DropdownButtonFormField<String>(
+              decoration: InputDecoration(
+                labelText: 'Division/Grade',
+                border: OutlineInputBorder(),
               ),
-            CheckboxListTile(
-              value: experience['isPresent'],
+              items: ['First Division', 'Second Division', 'Third Division']
+                  .map((grade) => DropdownMenuItem(
+                        value: grade,
+                        child: Text(grade),
+                      ))
+                  .toList(),
               onChanged: (value) {
-                setState(() {
-                  experience['isPresent'] = value!;
-                });
+                education['divisionGrade'] = value;
               },
-              title: Text('Currently Working Here'),
             ),
+          if (index < 6) SizedBox(height: 16),
+
+          // Percentage of Marks
+          if (index < 6)
             _buildTextField(
-              controller: TextEditingController(text: experience['designation']),
-              label: 'Designation',
+              controller: TextEditingController(text: education['percentage']),
+              label: 'Percentage of Marks',
             ),
+          if (index < 6) SizedBox(height: 16),
+
+          // Year
+          if (index < 6)
             _buildTextField(
-              controller: TextEditingController(text: experience['description']),
-              label: 'Description',
-              maxLines: 3,
+              controller: TextEditingController(text: education['year']),
+              label: 'Year',
             ),
-            if (experience['image'] != null)
-              Image.file(
-                experience['image'],
-                height: 150,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-            ElevatedButton(
-              onPressed: () => _pickImage(index),
-              child: Text("Upload Image"),
+          if (index < 6) SizedBox(height: 16),
+
+          // Specialization (optional, for higher education levels)
+          if (index > 1 && index < 6)
+            _buildTextField(
+              controller: TextEditingController(text: education['specialization']),
+              label: 'Specialization',
             ),
+
+          // Government Exams Section
+          if (index == 6) ...[
+            Text(
+              'Government Exams',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 16),
+
+            // GATE
+            Row(
+              children: [
+                Text("GATE: ", style: TextStyle(fontSize: 14)),
+                Spacer(),
+                DropdownButton<String>(
+                  value: education['gate'] ?? 'No',
+                  items: ['Yes', 'No']
+                      .map((option) => DropdownMenuItem(
+                            value: option,
+                            child: Text(option),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    education['gate'] = value;
+                  },
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+
+            // NET
+            Row(
+              children: [
+                Text("NET: ", style: TextStyle(fontSize: 14)),
+                Spacer(),
+                DropdownButton<String>(
+                  value: education['net'] ?? 'No',
+                  items: ['Yes', 'No']
+                      .map((option) => DropdownMenuItem(
+                            value: option,
+                            child: Text(option),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    education['net'] = value;
+                  },
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+
+            // UGC-CSIR
+            Row(
+              children: [
+                Text("UGC-CSIR: ", style: TextStyle(fontSize: 14)),
+                Spacer(),
+                DropdownButton<String>(
+                  value: education['ugcCsir'] ?? 'No',
+                  items: ['Yes', 'No']
+                      .map((option) => DropdownMenuItem(
+                            value: option,
+                            child: Text(option),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    education['ugcCsir'] = value;
+                  },
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+
+            // SLET (Any State)
+            
           ],
-        ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+Widget _buildExperienceCard(int index) {
+  final experience = experienceDetails[index];
 
-  Future<void> _pickImage(int index) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+  return Card(
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Experience ${index + 1}"),
+          SizedBox(height: 16),
 
-    if (pickedFile != null) {
-      setState(() {
-        experienceDetails[index]['image'] = File(pickedFile.path);
-      });
-    }
-  }
+          // Experience Type Dropdown
+          DropdownButtonFormField<String>(
+            value: experience['experienceType'],
+            decoration: InputDecoration(
+              labelText: 'Experience Type',
+              border: OutlineInputBorder(),
+            ),
+            items: [
+              'Full-Time',
+              'Part-Time',
+              'Internship',
+              'Freelance',
+              'Contract'
+            ]
+                .map((type) => DropdownMenuItem(
+                      value: type,
+                      child: Text(type),
+                    ))
+                .toList(),
+            onChanged: (value) {
+              setState(() {
+                experience['experienceType'] = value!;
+              });
+            },
+          ),
+          SizedBox(height: 16),
+
+          // Nature of Job Dropdown
+          DropdownButtonFormField<String>(
+            value: experience['natureOfJob'],
+            decoration: InputDecoration(
+              labelText: 'Nature of Job',
+              border: OutlineInputBorder(),
+            ),
+            items: [
+              'Technical',
+              'Management',
+              'Operations',
+              'Administrative',
+              'Other'
+            ]
+                .map((nature) => DropdownMenuItem(
+                      value: nature,
+                      child: Text(nature),
+                    ))
+                .toList(),
+            onChanged: (value) {
+              setState(() {
+                experience['natureOfJob'] = value!;
+              });
+            },
+          ),
+          SizedBox(height: 16),
+
+          // Organization Field
+          _buildTextField(
+            controller: TextEditingController(text: experience['organization']),
+            label: 'Organization',
+          ),
+          SizedBox(height: 16),
+
+          // From Date Field
+          _buildDateField(
+            controller: TextEditingController(text: experience['fromDate']),
+            label: 'From Date',
+          ),
+          SizedBox(height: 16),
+
+          // To Date Field (conditionally displayed)
+          if (!experience['isPresent'])
+            _buildDateField(
+              controller: TextEditingController(text: experience['toDate']),
+              label: 'To Date',
+            ),
+          SizedBox(height: 16),
+
+          // Currently Working Here Checkbox
+          CheckboxListTile(
+            value: experience['isPresent'],
+            onChanged: (value) {
+              setState(() {
+                experience['isPresent'] = value!;
+              });
+            },
+            title: Text('Currently Working Here'),
+          ),
+          SizedBox(height: 16),
+
+          // Designation Field
+          _buildTextField(
+            controller: TextEditingController(text: experience['designation']),
+            label: 'Designation',
+          ),
+          SizedBox(height: 16),
+
+          // Roles & Responsibilities Field
+          _buildTextField(
+            controller: TextEditingController(text: experience['description']),
+            label: 'Roles & Responsibilities',
+            maxLines: 3,
+          ),
+          SizedBox(height: 16),
+
+          // Image Field (optional)
+          if (experience['image'] != null)
+            Image.file(
+              experience['image'],
+              height: 150,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
+          SizedBox(height: 16),
+
+          // Upload Image Button
+          ElevatedButton.icon(
+            onPressed: () => _pickImage(index),
+            icon: Icon(Icons.image),
+            label: Text("Upload Image (Optional)"),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 }
