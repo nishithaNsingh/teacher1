@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "987175251333",
+    "project_id": "pu-teacher-app",
+    "storage_bucket": "pu-teacher-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:987175251333:android:de4ade7a502008769828ec",
+        "android_client_info": {
+          "package_name": "com.example.deatils"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0qqveImZ_t-1SruhHdAz9lHsrAeU1n64"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
