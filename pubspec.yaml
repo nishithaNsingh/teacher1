@@ -41,8 +41,11 @@ dependencies:
   lottie: ^3.2.0
   image_picker: ^0.8.7+5
   intl: ^0.18.0
+<<<<<<< HEAD
   firebase_core: ^3.10.1
   cloud_firestore: ^5.6.2
+=======
+>>>>>>> 23a60c6d4b7322b557396e8bd93713f8410b7c90
 
 dev_dependencies:
   flutter_test:
